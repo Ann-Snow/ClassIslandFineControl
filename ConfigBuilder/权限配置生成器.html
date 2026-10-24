@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ClassIsland 精细化管理 · 权限配置生成器</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%233b6ef5'/%3E%3Cpath d='M7 8h10M7 12h10M7 16h6' stroke='white' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E">
+<style>
+  :root {
+    --bg:#f2f5fb; --card:#ffffff; --line:#e3e9f4; --text:#1c2733; --sub:#6b7a90;
+    --accent:#3b6ef5; --accent-soft:#e8efff; --ok:#16a34a; --warn:#d97706; --danger:#dc2626;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body {
+    font-family: "PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+    background:var(--bg); color:var(--text); min-height:100vh;
+  }
+  header {
+    background:var(--card); border-bottom:1px solid var(--line);
+    padding:14px 20px; display:flex; flex-wrap:wrap; gap:10px; align-items:center;
+    position:sticky; top:0; z-index:20;
+  }
+  header h1 { font-size:17px; font-weight:700; margin-right:auto; display:flex; align-items:center; gap:8px; }
+  header h1 svg { flex:none; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+  label.lbl { font-size:12px; color:var(--sub); }
+  select, button {
+    font-family:inherit; font-size:13px; border:1px solid var(--line);
+    border-radius:8px; background:#fff; color:var(--text); height:36px; padding:0 10px;
+  }
+  button { cursor:pointer; font-weight:600; background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.ghost { background:#fff; color:var(--accent); border-color:var(--accent); }
+  button.small { height:30px; padding:0 10px; font-size:12px; }
+  main { display:grid; grid-template-columns:300px 1fr; gap:16px; padding:16px; max-width:1400px; margin:0 auto; }
+  aside {
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:12px; height:fit-content; position:sticky; top:80px; max-height:calc(100vh - 100px); overflow:auto;
+  }
+  .tree-title { font-size:12px; color:var(--sub); margin:10px 4px 6px; font-weight:600; }
+  .group-box { border:1px solid var(--line); border-radius:10px; margin-bottom:10px; overflow:hidden; }
+  .group-head {
+    background:var(--accent-soft); padding:8px 10px; display:flex; align-items:center; gap:8px;
+    cursor:pointer; user-select:none;
+  }
+  .group-head .chev { transition:transform .15s; flex:none; color:var(--accent); }
+  .group-head.collapsed .chev { transform:rotate(-90deg); }
+  .group-head.collapsed + .group-pages { display:none; }
+  .group-head .gname { font-weight:700; font-size:13px; flex:1; }
+  .page-item { padding:6px 10px 6px 28px; display:flex; align-items:center; gap:8px; cursor:pointer; border-top:1px solid var(--line); }
+  .page-item:hover { background:#f7faff; }
+  .page-item.active { background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .page-item .pname { flex:1; font-size:13px; }
+  .standalone { padding:6px 10px; border:1px solid var(--line); border-radius:8px; margin-bottom:6px; cursor:pointer; display:flex; align-items:center; gap:8px; }
+  .standalone:hover { background:#f7faff; }
+  .standalone.active { background:var(--accent-soft); box-shadow:inset 3px 0 0 var(--accent); }
+  .standalone .pname { flex:1; font-size:13px; }
+  .badge { font-size:11px; padding:1px 6px; border-radius:10px; font-weight:600; }
+  .badge.op { background:#eef2f7; color:var(--sub); }
+  .badge.dis { background:#fdeaea; color:var(--danger); }
+  .badge.hid { background:#fdf3e2; color:var(--warn); }
+  section { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; min-height:400px; }
+  .page-title { font-size:16px; font-weight:700; margin-bottom:4px; }
+  .page-sub { font-size:12px; color:var(--sub); margin-bottom:14px; }
+  .item-row {
+    display:flex; align-items:center; gap:12px; padding:10px 4px; border-top:1px solid var(--line); flex-wrap:wrap;
+  }
+  .item-main { flex:1; min-width:200px; }
+  .item-key { font-size:14px; font-weight:600; }
+  .item-prop { font-size:12px; color:var(--sub); margin-top:2px; word-break:break-all; }
+  .prop-input {
+    font-family:inherit; font-size:13px; border:1px solid var(--line); border-radius:8px;
+    background:#fff; color:var(--text); height:32px; padding:0 10px; width:100%; max-width:420px;
+  }
+  .prop-input:focus { outline:none; border-color:var(--accent); }
+  .item-action select { height:34px; min-width:120px; }
+  .perm-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7a90' fill='none' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; padding-right:28px; }
+  .perm-select.op { background-color:#fff; }
+  .perm-select.dis { background-color:#fdeaea; border-color:var(--danger); color:var(--danger); }
+  .perm-select.hid { background-color:#fdf3e2; border-color:var(--warn); color:var(--warn); }
+  .empty { color:var(--sub); font-size:13px; padding:20px 4px; }
+  .hint-note { font-size:12px; color:var(--sub); background:#f7faff; border:1px dashed var(--line); border-radius:8px; padding:10px; margin-top:14px; line-height:1.7; }
+  .hint-note b { color:var(--accent); }
+  .counts { font-size:12px; color:var(--sub); }
+  #exportModal {
+    position:fixed; inset:0; background:rgba(15,23,42,.45); display:none; align-items:center; justify-content:center; z-index:50; padding:16px;
+  }
+  #exportModal.show { display:flex; }
+  .modal-card { background:#fff; border-radius:14px; width:100%; max-width:820px; max-height:88vh; display:flex; flex-direction:column; overflow:hidden; }
+  .modal-head { padding:14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; }
+  .modal-head h2 { font-size:15px; flex:1; }
+  .modal-body { padding:14px 18px; overflow:auto; flex:1; }
+  textarea { width:100%; min-height:340px; font-family:ui-monospace,Consolas,monospace; font-size:16px; border:1px solid var(--line); border-radius:8px; padding:10px; resize:vertical; background:#fbfcff; }
+  .modal-foot { padding:12px 18px; border-top:1px solid var(--line); display:flex; gap:8px; justify-content:flex-end; flex-wrap:wrap; }
+  @media (max-width:860px) {
+    main { grid-template-columns:1fr; }
+    aside { position:static; max-height:none; }
+    header { position:static; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect width="24" height="24" rx="5" fill="#3b6ef5"/><path d="M7 8h10M7 12h10M7 16h6" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg>
+    ClassIsland 精细化管理 · 权限配置生成器
+  </h1>
+  <div class="toolbar">
+    <label class="lbl">默认权限</label>
+    <select id="defaultPerm" class="perm-select op">
+      <option value="Operable" selected>可操作</option>
+      <option value="Disabled">禁用（置灰）</option>
+      <option value="Hidden">隐藏</option>
+    </select>
+    <button id="btnReset" class="ghost small">恢复默认</button>
+    <label class="lbl" style="display:flex;align-items:center;gap:6px;cursor:pointer"
+           title="自保护总开关：关闭后不再置灰本插件“打包插件 / 打开插件文件夹… / 打开配置文件夹…”，不再隐藏插件页“刷新”入口，并解除对本插件自身“已启用/移除”的锁定">
+      <input type="checkbox" id="selfProtect" style="width:16px;height:16px;accent-color:var(--accent)">
+      启用自保护
+    </label>
+    <label class="lbl" title="这些插件的启用开关会被锁定，学生无法取消启用">锁定插件</label>
+    <input id="lockedInput" placeholder="插件 id，逗号分隔"
+           value="cn.finecontrol.permission"
+           style="font-family:inherit;font-size:16px;border:1px solid var(--line);border-radius:8px;height:36px;padding:0 10px;width:200px">
+    <button id="btnImport" class="ghost small">导入</button>
+    <input type="file" id="fileImport" accept=".json,application/json" style="display:none">
+    <button id="btnExport">导出配置</button>
+    <span class="counts" id="statsBar"></span>
+  </div>
+</header>
+
+<main>
+  <aside id="tree"></aside>
+  <section id="panel">
+    <div class="page-title" id="panelTitle">请选择左侧的设置页</div>
+    <div class="page-sub" id="panelSub">选择大页或独立小页后，在此配置页内每个设置项的权限。</div>
+    <div id="itemList"></div>
+    <div class="hint-note" id="pageHint"></div>
+  </section>
+</main>
+
+<div id="exportModal">
+  <div class="modal-card">
+    <div class="modal-head"><h2>导出的权限配置（permissions.json）</h2><span class="counts" id="modalCount"></span></div>
+    <div class="modal-body"><textarea id="exportText" readonly spellcheck="false"></textarea></div>
+    <div class="modal-foot">
+      <button id="btnCopy" class="ghost">复制 JSON</button>
+      <button id="btnDownload">下载 permissions.json</button>
+      <button id="btnClose" class="ghost">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 值级锁定（settingsProperty）暂未优化，生成器不提供配置入口 -->
+
+<script>
+"use strict";
+/* =====================================================================
+   数据：ClassIsland 2.1.0.1 设置页结构 + 设置项（取自官方源码与实机截图）。
+   ===================================================================== */
+const DATA = {
+  defaultPermission: "Operable",
+  groups: [
+    {
+      id: "classisland.general", name: "通用", permission: "Operable",
+      pages: [
+        {
+          id: "general", name: "基本", permission: "Operable",
+          items: [
+            { key: "开机自启", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "系统服务托管，无法值级锁定" },
+            { key: "注册 Url 协议", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "学期开始时间", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "多周轮换课表起点" },
+            { key: "点击托盘图标行为", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "教学安全模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "含崩溃处理方式选择" },
+            { key: "显示启动加载界面", matchMode: "HeaderText", permission: "Operable", settingsProperty: "IsSplashEnabled", remark: "" },
+            { key: "隐藏窗口", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "含基础/高级模式的隐藏条件" },
+            { key: "动画级别", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "禁用动画等待", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "降低主界面进度条精度", matchMode: "HeaderText", permission: "Operable", settingsProperty: "ReduceProgressAccuracy", remark: "" }
+          ]
+        },
+        {
+          id: "clock", name: "时钟", permission: "Operable",
+          items: [
+            { key: "使用精确时间", matchMode: "HeaderText", permission: "Operable", settingsProperty: "IsExactTimeEnabled", remark: "" },
+            { key: "时间服务器", matchMode: "HeaderText", permission: "Operable", settingsProperty: "ExactTimeServer", remark: "" },
+            { key: "立即同步", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+            { key: "时间偏移", matchMode: "HeaderText", permission: "Operable", settingsProperty: "TimeOffsetSeconds", remark: "" },
+            { key: "自动时间偏移", matchMode: "HeaderText", permission: "Operable", settingsProperty: "IsTimeAutoAdjustEnabled", remark: "" },
+            { key: "对齐铃声", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" }
+          ]
+        },
+        {
+          id: "storage", name: "存储", permission: "Operable",
+          items: [
+            { key: "启用自动备份", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "自动备份间隔", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "自动备份上限", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "上次成功自动备份", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "只读信息" },
+            { key: "立即备份", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+            { key: "查看备份文件...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+            { key: "恢复备份...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+            { key: "备份文件占用大小", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "只读信息" }
+          ]
+        },
+        {
+          id: "privacy", name: "隐私", permission: "Operable",
+          items: [
+            { key: "启用匿名使用情况分析", matchMode: "HeaderText", permission: "Operable", settingsProperty: "IsReportingEnabled", remark: "" }
+          ]
+        },
+        {
+          id: "refreshing", name: "翻新与迎新", permission: "Operable",
+          items: [
+            { key: "定期翻新", matchMode: "HeaderText", permission: "Operable", settingsProperty: "IsRefreshingToastEnabled", remark: "" },
+            { key: "迎新模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: "ShowRefreshingToastOnNextStart", remark: "生效一次后自动关闭" },
+            { key: "通知显示间隔", matchMode: "HeaderText", permission: "Operable", settingsProperty: "RefreshingToastThresholdDays", remark: "" },
+            { key: "在下次启动时显示通知", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "最高通知显示次数", matchMode: "HeaderText", permission: "Operable", settingsProperty: "MaxRefreshingToastCounts", remark: "" },
+            { key: "剩余通知次数", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "只读信息" }
+          ]
+        },
+        {
+          id: "advanced", name: "高级", permission: "Operable",
+          items: [
+            { key: "自动禁用异常插件", matchMode: "HeaderText", permission: "Operable", settingsProperty: "AutoDisableCorruptPlugins", remark: "" },
+            { key: "渲染模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "使用系统标题栏", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" }
+          ]
+        }
+      ]
+    },
+    {
+      id: "classisland.mainwindow", name: "主界面", permission: "Operable",
+      pages: [
+        {
+          id: "components", name: "组件", permission: "Operable",
+          items: [
+            { key: "进入编辑模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "组件库为拖拽式，建议用页面级权限控制整页" }
+          ]
+        },
+        {
+          id: "appearance", name: "外观", permission: "Operable",
+          items: [
+            { key: "界面缩放", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "背景颜色", matchMode: "HeaderText", permission: "Operable", settingsProperty: "IsCustomBackgroundColorEnabled", remark: "" },
+            { key: "背景不透明度", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "圆角半径", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "行间隔", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "分体主界面", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "应用主题", matchMode: "HeaderText", permission: "Operable", settingsProperty: "Theme", remark: "" },
+            { key: "主题色来源", matchMode: "HeaderText", permission: "Operable", settingsProperty: "ColorSource", remark: "" },
+            { key: "自定义字体", matchMode: "HeaderText", permission: "Operable", settingsProperty: "MainWindowFont", remark: "" },
+            { key: "自定义字重", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "字体大小", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "字体颜色", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" }
+          ]
+        },
+        {
+          id: "window", name: "窗口", permission: "Operable",
+          items: [
+            { key: "窗口停靠位置", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "向右偏移", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "向下偏移", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "显示器", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "刷新显示器列表", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+            { key: "窗口层级", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "窗口层级设置频率", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "指针移入淡化", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "使用原始输入", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "反转指针移入淡化", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "使用原始屏幕尺寸", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "录制模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+            { key: "阻止截图", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" }
+          ]
+        }
+      ]
+    }
+  ],
+  pages: [
+    {
+      id: "notification", name: "提醒", permission: "Operable",
+      items: [
+        { key: "启用提醒", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "启用提醒音效", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "启用提醒语音", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "启用提醒强调特效", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "提醒渠道", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "提醒提供方", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "语音引擎", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "语音音量", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "音效音量", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "置顶提醒", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "测试语音", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+        { key: "测试朗读文本", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" }
+      ]
+    },
+    {
+      id: "weather", name: "天气", permission: "Operable",
+      items: [
+        { key: "天气位置", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "城市选择", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "位置坐标", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "启用自动刷新天气位置", matchMode: "HeaderText", permission: "Operable", settingsProperty: "AutoRefreshWeatherLocation", remark: "" },
+        { key: "天气图标包", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "排除的气象预警", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "不使用 TLS 协议获取天气", matchMode: "HeaderText", permission: "Operable", settingsProperty: "NoTLSWeatherRequests", remark: "" }
+      ]
+    },
+    {
+      id: "automation", name: "自动化", permission: "Operable",
+      items: [
+        { key: "启用自动化", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "启用恢复", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "添加自动化", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" }
+      ]
+    },
+    {
+      id: "update", name: "更新", permission: "Operable",
+      items: [
+        { key: "更新模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "检查更新通道", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "" },
+        { key: "强制检查更新", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+        { key: "下载并安装", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+        { key: "仅下载", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+        { key: "安装更新", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" },
+        { key: "取消", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "按钮" }
+      ]
+    },
+    { id: "classisland.plugins", name: "插件", permission: "Operable", items: [
+        { key: "市场", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "页签：隐藏后学生看不到插件市场" },
+        { key: "从缓存重载插件源", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "更多选项菜单" },
+        { key: "管理插件源…", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "更多选项菜单" },
+        { key: "插件更新设置…", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "更多选项菜单" },
+        { key: "从本地安装…", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "更多选项菜单" },
+        { key: "打开插件文件夹…", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "更多选项菜单" }
+      ] },
+    { id: "classisland.themes", name: "主题", permission: "Operable", items: [] },
+    { id: "about", name: "关于", permission: "Operable", items: [] },
+    { id: "classisland.appmenu", name: "应用菜单（三个点）", permission: "Operable", items: [
+        { key: "实验性功能...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "调试窗口规则...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "创建快捷方式...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "数据迁移...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单（含子菜单）" },
+        { key: "集控选项...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单（含子菜单）" },
+        { key: "退出管理...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "日志...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单（含子菜单）" },
+        { key: "导出诊断数据", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "重启到恢复模式", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "打开日志目录...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "打开数据目录...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" },
+        { key: "打开应用目录...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "右上角三个点菜单" }
+      ] },
+    { id: "classisland.traymenu", name: "托盘图标菜单", permission: "Operable", items: [
+        { key: "ClassIsland", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单（关于）" },
+        { key: "教学...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "帮助文档...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "显示主界面", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "隐藏主界面", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "清除全部提醒", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "更多选项...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单（插件项在子菜单内）" },
+        { key: "编辑档案...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "加载临时课表...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "换课...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "编辑主界面...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "应用设置...", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "重启", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "退出", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单" },
+        { key: "dev__Debug", matchMode: "HeaderText", permission: "Operable", settingsProperty: null, remark: "托盘右键菜单（调试，含子菜单）" }
+      ] }
+  ]
+};
+/* ===================== 工具函数 ===================== */
+const $ = (id) => document.getElementById(id);
+const LABEL = { Operable: "可操作", Disabled: "禁用（置灰）", Hidden: "隐藏" };
+const BADGE = { Operable: "op", Disabled: "dis", Hidden: "hid" };
+
+
+function esc(s) {
+  return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/* 全局选中状态：当前小页对象（或 null） */
+let currentPage = null;
+
+/* 已折叠的大页（分组）索引集合，重渲染后保持折叠状态 */
+const collapsedGroups = new Set();
+
+/* ===================== 左侧树渲染 ===================== */
+function renderTree() {
+  const tree = $("tree");
+  let html = '<div class="tree-title">大页（导航分组）</div>';
+  DATA.groups.forEach((g, gi) => {
+    const coll = collapsedGroups.has(gi) ? " collapsed" : "";
+    html += `<div class="group-box">
+      <div class="group-head${coll}" data-gi="${gi}">
+        <svg class="chev" width="12" height="12" viewBox="0 0 12 12"><path d="M2 3l4 5 4-5" stroke="currentColor" fill="none" stroke-width="1.8" stroke-linecap="round"/></svg>
+        <span class="gname">${esc(g.name)}</span>
+        <select class="perm-select ${BADGE[g.permission]}" data-gi="${gi}" data-kind="group" title="大页权限：${esc(LABEL[g.permission])}">
+          <option value="Operable"${g.permission === "Operable" ? " selected" : ""}>可操作</option>
+          <option value="Disabled"${g.permission === "Disabled" ? " selected" : ""}>禁用（置灰）</option>
+          <option value="Hidden"${g.permission === "Hidden" ? " selected" : ""}>隐藏</option>
+        </select>
+      </div>
+      <div class="group-pages">`;
+    g.pages.forEach((p, pi) => {
+      const active = currentPage === p ? " active" : "";
+      html += `<div class="page-item${active}" data-gi="${gi}" data-pi="${pi}">
+        <span class="pname">${esc(p.name)}</span>
+        <select class="perm-select ${BADGE[p.permission]}" data-gi="${gi}" data-pi="${pi}" data-kind="page" title="小页权限">
+          <option value="Operable"${p.permission === "Operable" ? " selected" : ""}>可操作</option>
+          <option value="Disabled"${p.permission === "Disabled" ? " selected" : ""}>禁用（置灰）</option>
+          <option value="Hidden"${p.permission === "Hidden" ? " selected" : ""}>隐藏</option>
+        </select>
+      </div>`;
+    });
+    html += "</div></div>";
+  });
+
+  html += '<div class="tree-title">独立小页（无分组）</div>';
+  DATA.pages.forEach((p, pi) => {
+    const active = currentPage === p ? " active" : "";
+    // 托盘菜单页的页面级权限只支持 可操作 / 隐藏（置灰对原生菜单无效，故不提供该选项）
+    const trayOnly = p.id === "classisland.traymenu";
+    const options = trayOnly
+      ? `<option value="Operable"${p.permission === "Operable" ? " selected" : ""}>可操作</option>
+         <option value="Hidden"${p.permission === "Hidden" ? " selected" : ""}>隐藏</option>`
+      : `<option value="Operable"${p.permission === "Operable" ? " selected" : ""}>可操作</option>
+         <option value="Disabled"${p.permission === "Disabled" ? " selected" : ""}>禁用（置灰）</option>
+         <option value="Hidden"${p.permission === "Hidden" ? " selected" : ""}>隐藏</option>`;
+    html += `<div class="standalone${active}" data-si="${pi}">
+      <span class="pname">${esc(p.name)}</span>
+      <select class="perm-select ${BADGE[p.permission]}" data-si="${pi}" data-kind="page" title="小页权限">
+        ${options}
+      </select>
+    </div>`;
+  });
+  tree.innerHTML = html;
+}
+
+/* ===================== 右侧面板渲染 ===================== */
+function renderPanel() {
+  if (!currentPage) {
+    $("panelTitle").textContent = "请选择左侧的设置页";
+    $("panelSub").textContent = "选择大页或独立小页后，在此配置页内每个设置项的权限。";
+    $("itemList").innerHTML = '<div class="empty">尚未选择设置页</div>';
+    $("pageHint").textContent = "";
+    return;
+  }
+  $("panelTitle").textContent = currentPage.name + " · 设置项权限";
+  $("panelSub").textContent = "每个设置项三档：可操作 / 禁用（置灰，可见但不可点击）/ 隐藏（从页面中彻底消失）。";
+
+  if (currentPage.items.length === 0) {
+    $("itemList").innerHTML = '<div class="empty">该页面没有可独立配置的设置项，请使用页面级权限控制整页。</div>';
+  } else {
+    let html = "";
+    currentPage.items.forEach((it, ii) => {
+      const remark = it.remark ? `<div class="item-prop">${esc(it.remark)}</div>` : "";
+      html += `<div class="item-row">
+        <div class="item-main">
+          <div class="item-key">${esc(it.key)}</div>
+          ${remark}
+          <div class="item-prop" style="margin-top:4px">
+            <input class="prop-input" type="number" min="1" data-index="${ii}"
+                   placeholder="index（可选，同名项取第 N 个；留空 = 精确匹配要求唯一命中）"
+                   value="${it.index || ""}">
+          </div>
+        </div>
+        <div class="item-action">
+          <select class="perm-select ${BADGE[it.permission]}" data-ii="${ii}">
+            <option value="Operable"${it.permission === "Operable" ? " selected" : ""}>可操作</option>
+            <option value="Disabled"${it.permission === "Disabled" ? " selected" : ""}>禁用（置灰）</option>
+            <option value="Hidden"${it.permission === "Hidden" ? " selected" : ""}>隐藏</option>
+          </select>
+        </div>
+      </div>`;
+    });
+    $("itemList").innerHTML = html;
+  }
+
+  $("pageHint").innerHTML =
+    "<b>说明</b>：设置项权限只在该页打开时生效。若目标项未被拦截，" +
+    "说明其标题不在当前页面可视范围内，可改用页面级权限（左侧该小页的三档选择）整页管控。<br>" +
+    "<b>同名项</b>：精确匹配（标题/Name/AutomationId）要求页内唯一命中；多处同名时插件会跳过并记录警告。" +
+    "确需指定重复项时，用 <b>index</b> 按页面可视顺序取第 N 个（1 起）；批量匹配请改用 Wildcard 模式。<br>" +
+    "<b>自保护</b>：顶部“启用自保护”是总开关（导出为 <code>selfProtection</code>，默认 false）；" +
+    "开启后插件会置灰自身的工具菜单、隐藏插件页的“刷新”入口、锁定自身“已启用/移除”并拦截标记文件；" +
+    "“锁定插件”中对其它插件的锁定不受影响。";
+
+  if (currentPage.id === "classisland.appmenu") {
+    $("pageHint").innerHTML =
+      "<b>应用菜单（三个点）</b>：左侧该页的页面级权限控制右上角“三个点”按钮本身（可操作 / 置灰 / 隐藏）；" +
+      "下方设置项控制菜单中的具体条目（已列出常用项；子菜单项可在导出的 JSON 中按标题补充）。";
+  } else if (currentPage.id === "classisland.traymenu") {
+    $("pageHint").innerHTML =
+      "<b>托盘图标菜单</b>：左侧该页的页面级权限控制托盘图标本身（隐藏 = 整个托盘图标不显示）；" +
+      "下方设置项按菜单标题控制托盘右键菜单中的具体条目，支持 Hidden / Disabled / index。" +
+      "<br><b>注意</b>：托盘菜单是系统原生菜单（不是可视控件），匹配只支持 HeaderText 与 Wildcard；" +
+      "“更多选项...”里由插件追加的条目也在匹配范围内。";
+  }
+}
+
+/* ===================== 事件绑定（事件委托） ===================== */
+$("tree").addEventListener("click", (e) => {
+  /* 关键：select 上的点击不参与树的展开/选中逻辑，
+     否则会冒泡触发折叠切换或整树重渲染（下拉菜单被重建、立刻收回） */
+  if (e.target.closest("select")) return;
+
+  const head = e.target.closest(".group-head");
+  if (head) {
+    const gi = +head.dataset.gi;
+    if (collapsedGroups.has(gi)) collapsedGroups.delete(gi);
+    else collapsedGroups.add(gi);
+    head.classList.toggle("collapsed");
+    return;
+  }
+  const item = e.target.closest(".page-item") || e.target.closest(".standalone");
+  if (item) {
+    const gi = item.dataset.gi, pi = item.dataset.pi, si = item.dataset.si;
+    if (si !== undefined) currentPage = DATA.pages[+si];
+    else currentPage = DATA.groups[+gi].pages[+pi];
+    renderTree();
+    renderPanel();
+  }
+});
+
+$("tree").addEventListener("change", (e) => {
+  const sel = e.target.closest("select[data-kind]");
+  if (!sel) return;
+  const gi = sel.dataset.gi, pi = sel.dataset.pi, si = sel.dataset.si;
+  if (sel.dataset.kind === "group") DATA.groups[+gi].permission = sel.value;
+  else if (si !== undefined) DATA.pages[+si].permission = sel.value;
+  else DATA.groups[+gi].pages[+pi].permission = sel.value;
+  /* 轻量刷新：只更新该 select 的配色，不重建整树（避免折叠状态丢失、下拉抖动） */
+  sel.className = "perm-select " + BADGE[sel.value];
+  updateStats();
+});
+
+$("itemList").addEventListener("change", (e) => {
+  const sel = e.target.closest("select[data-ii]");
+  if (sel && currentPage) {
+    currentPage.items[+sel.dataset.ii].permission = sel.value;
+    sel.className = "perm-select " + BADGE[sel.value];
+    updateStats();
+    return;
+  }
+  const indexInput = e.target.closest("input[data-index]");
+  if (indexInput && currentPage) {
+    const n = parseInt(indexInput.value, 10);
+    const item = currentPage.items[+indexInput.dataset.index];
+    if (Number.isFinite(n) && n > 0) item.index = n;
+    else delete item.index;
+  }
+});
+
+/* ===================== 统计与恢复默认 ===================== */
+function countStats() {
+  let d = 0, h = 0;
+  const add = (p) => { if (p === "Disabled") d++; else if (p === "Hidden") h++; };
+  DATA.groups.forEach((g) => {
+    add(g.permission);
+    g.pages.forEach((p) => { add(p.permission); p.items.forEach((it) => add(it.permission)); });
+  });
+  DATA.pages.forEach((p) => { add(p.permission); p.items.forEach((it) => add(it.permission)); });
+  return { d, h };
+}
+
+function updateStats() {
+  const s = countStats();
+  $("statsBar").textContent = `已禁用 ${s.d} 项 · 已隐藏 ${s.h} 项`;
+}
+
+$("btnReset").addEventListener("click", () => {
+  const def = $("defaultPerm").value;
+  if (!confirm(`确定恢复默认吗？全部权限将重置为“${LABEL[def]}”（默认权限当前选项）。`)) return;
+  DATA.groups.forEach((g) => {
+    g.permission = def;
+    g.pages.forEach((p) => {
+      p.permission = def;
+      p.items.forEach((it) => it.permission = def);
+    });
+  });
+  DATA.pages.forEach((p) => {
+    p.permission = def;
+    p.items.forEach((it) => it.permission = def);
+  });
+  renderTree();
+  renderPanel();
+  updateStats();
+});
+
+/* ===================== 导出（仅完整导出） ===================== */
+function buildExport() {
+  const out = {
+    schemaVersion: 1,
+    defaultPermission: $("defaultPerm").value,
+    selfProtection: $("selfProtect").checked
+  };
+
+  // 锁定插件：解析逗号分隔的插件 id 列表（有值才输出）
+  const locked = $("lockedInput").value.split(",").map((s) => s.trim()).filter(Boolean);
+  if (locked.length > 0) out.lockedPlugins = locked;
+
+  // 完整导出全部节点；settingsProperty（值级锁定）暂未优化，导出时剔除该字段
+  out.groups = stripSettingsProperty(DATA.groups);
+  out.pages = stripSettingsProperty(DATA.pages);
+
+  // 托盘菜单页不支持“禁用（置灰）”，历史数据若为 Disabled 统一按隐藏导出
+  out.pages.forEach((p) => {
+    if (p.id === "classisland.traymenu" && p.permission === "Disabled") {
+      p.permission = "Hidden";
+    }
+  });
+  return out;
+}
+
+function stripSettingsProperty(nodes) {
+  return JSON.parse(JSON.stringify(nodes), (key, value) =>
+    key === "settingsProperty" ? undefined : value
+  );
+}
+
+$("btnExport").addEventListener("click", () => {
+  const out = buildExport();
+  $("exportText").value = JSON.stringify(out, null, 2);
+  const s = countStats();
+  $("modalCount").textContent = "共禁用 " + s.d + " 项 · 隐藏 " + s.h + " 项";
+  $("exportModal").classList.add("show");
+});
+$("btnClose").addEventListener("click", () => $("exportModal").classList.remove("show"));
+$("exportModal").addEventListener("click", (e) => {
+  if (e.target === $("exportModal")) $("exportModal").classList.remove("show");
+});
+
+$("btnCopy").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText($("exportText").value);
+    $("btnCopy").textContent = "已复制";
+    setTimeout(() => ($("btnCopy").textContent = "复制 JSON"), 1500);
+  } catch {
+    $("exportText").select();
+    document.execCommand("copy");
+    $("btnCopy").textContent = "已复制";
+    setTimeout(() => ($("btnCopy").textContent = "复制 JSON"), 1500);
+  }
+});
+
+$("btnDownload").addEventListener("click", () => {
+  const blob = new Blob([$("exportText").value], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "permissions.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+});
+
+/* ===================== 导入回填 ===================== */
+$("btnImport").addEventListener("click", () => $("fileImport").click());
+$("fileImport").addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data.defaultPermission) $("defaultPerm").value = data.defaultPermission;
+      if (typeof data.selfProtection === "boolean") $("selfProtect").checked = data.selfProtection;
+      if (Array.isArray(data.lockedPlugins)) $("lockedInput").value = data.lockedPlugins.join(", ");
+      applyImport(DATA.groups, data.groups);
+      applyImport(DATA.pages, data.pages);
+      renderTree();
+      renderPanel();
+      updateStats();
+      alert("导入成功，已回填权限设置。");
+    } catch {
+      alert("导入失败：JSON 格式不正确。");
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = "";
+});
+
+function applyImport(targets, imported) {
+  if (!Array.isArray(imported)) return;
+  imported.forEach((src) => {
+    const match = targets.find((t) => t.id === src.id);
+    if (!match) return;
+    if (src.permission) {
+      // 托盘菜单页不支持“禁用（置灰）”，导入时按隐藏处理
+      match.permission = (match.id === "classisland.traymenu" && src.permission === "Disabled")
+        ? "Hidden"
+        : src.permission;
+    }
+    if (Array.isArray(src.items)) {
+      src.items.forEach((srcItem) => {
+        const item = match.items.find((i) => i.key === srcItem.key);
+        if (!item) return;
+        if (srcItem.permission) item.permission = srcItem.permission;
+        const idx = parseInt(srcItem.index, 10);
+        if (Number.isFinite(idx) && idx > 0) item.index = idx;
+        else delete item.index;
+      });
+    }
+    if (Array.isArray(src.pages)) applyImport(match.pages, src.pages);
+  });
+}
+
+/* ===================== 初始化 ===================== */
+renderTree();
+renderPanel();
+updateStats();
+</script>
+</body>
+</html>

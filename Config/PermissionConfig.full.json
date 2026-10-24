@@ -1,0 +1,307 @@
+// =====================================================================
+// ClassIsland 精细化管理插件 —— 集控权限配置文件（完整模板 v1.1.8）
+// ---------------------------------------------------------------------
+// 覆盖全部设置页与页内设置项（取自 ClassIsland 2.1.0.1 官方源码与实机截图）。
+// 全部为 Operable，可按需把任意项改为 Disabled（置灰）/ Hidden（隐藏）。
+// 支持 // 与 /* */ 注释（插件解析时自动忽略）。
+// 字段说明：
+//   key             —— 控件匹配键（页面上可见的标题文本）
+//   matchMode       —— HeaderText（默认，标题匹配）/ Name / AutomationId / Wildcard
+//   permission      —— Operable（可操作）/ Disabled（置灰）/ Hidden（隐藏）
+//   settingsProperty—— 可选值级锁定属性（Settings 模型真实属性）；null=仅 UI 拦截
+//   remark          —— 备注（可选）
+// 大页 permission 继承：Disabled/Hidden → 组内所有小页整体失效；Operable → 小页独立控制。
+// =====================================================================
+{
+  "schemaVersion": 1,
+  "defaultPermission": "Operable",
+
+  // 自保护总开关（默认 false）：开启后插件置灰本插件详情工具菜单、
+  // 隐藏插件页“刷新”、锁定自身“已启用/移除”，并拦截禁用/移除标记文件。
+  "selfProtection": false,
+
+  // 锁定插件：这些插件的启用开关在“插件”页中会被强制置灰，学生无法取消启用。
+  // 值为插件 manifest 中的 id（本插件为 cn.finecontrol.permission）。
+  // 建议至少锁住本插件，防止学生关闭管控导致管理失效。
+  "lockedPlugins": ["cn.finecontrol.permission"],
+
+  // ===================== 大页：通用 =====================
+  "groups": [
+    {
+      "id": "classisland.general",
+      "name": "通用",
+      "permission": "Operable",
+      "pages": [
+        {
+          "id": "general",
+          "name": "基本",
+          "permission": "Operable",
+          "items": [
+            { "key": "开机自启", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "系统服务托管，无法值级锁定" },
+            { "key": "注册 Url 协议", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "学期开始时间", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "多周轮换课表起点" },
+            { "key": "点击托盘图标行为", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "教学安全模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "含崩溃处理方式" },
+            { "key": "显示启动加载界面", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "IsSplashEnabled", "remark": "" },
+            { "key": "隐藏窗口", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "含基础/高级模式的隐藏条件" },
+            { "key": "动画级别", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "禁用动画等待", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "降低主界面进度条精度", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "ReduceProgressAccuracy", "remark": "" }
+          ]
+        },
+        {
+          "id": "clock",
+          "name": "时钟",
+          "permission": "Operable",
+          "items": [
+            { "key": "使用精确时间", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "IsExactTimeEnabled", "remark": "" },
+            { "key": "时间服务器", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "ExactTimeServer", "remark": "" },
+            { "key": "立即同步", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+            { "key": "时间偏移", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "TimeOffsetSeconds", "remark": "" },
+            { "key": "自动时间偏移", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "IsTimeAutoAdjustEnabled", "remark": "" },
+            { "key": "对齐铃声", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" }
+          ]
+        },
+        {
+          "id": "storage",
+          "name": "存储",
+          "permission": "Operable",
+          "items": [
+            { "key": "启用自动备份", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "自动备份间隔", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "自动备份上限", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "上次成功自动备份", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "只读信息" },
+            { "key": "立即备份", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+            { "key": "查看备份文件...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+            { "key": "恢复备份...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+            { "key": "备份文件占用大小", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "只读信息" }
+          ]
+        },
+        {
+          "id": "privacy",
+          "name": "隐私",
+          "permission": "Operable",
+          "items": [
+            { "key": "启用匿名使用情况分析", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "IsReportingEnabled", "remark": "" }
+          ]
+        },
+        {
+          "id": "refreshing",
+          "name": "翻新与迎新",
+          "permission": "Operable",
+          "items": [
+            { "key": "定期翻新", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "IsRefreshingToastEnabled", "remark": "" },
+            { "key": "迎新模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "ShowRefreshingToastOnNextStart", "remark": "生效一次后自动关闭" },
+            { "key": "通知显示间隔", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "RefreshingToastThresholdDays", "remark": "" },
+            { "key": "在下次启动时显示通知", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "最高通知显示次数", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "MaxRefreshingToastCounts", "remark": "" },
+            { "key": "剩余通知次数", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "只读信息" }
+          ]
+        },
+        {
+          "id": "advanced",
+          "name": "高级",
+          "permission": "Operable",
+          "items": [
+            { "key": "自动禁用异常插件", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "AutoDisableCorruptPlugins", "remark": "" },
+            { "key": "渲染模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "使用系统标题栏", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" }
+          ]
+        }
+      ]
+    },
+
+    // ===================== 大页：主界面 =====================
+    {
+      "id": "classisland.mainwindow",
+      "name": "主界面",
+      "permission": "Operable",
+      "pages": [
+        {
+          "id": "components",
+          "name": "组件",
+          "permission": "Operable",
+          "items": [
+            { "key": "进入编辑模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "组件库为拖拽式，建议页面级权限整页管控" }
+          ]
+        },
+        {
+          "id": "appearance",
+          "name": "外观",
+          "permission": "Operable",
+          "items": [
+            { "key": "界面缩放", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "背景颜色", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "IsCustomBackgroundColorEnabled", "remark": "" },
+            { "key": "背景不透明度", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "圆角半径", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "行间隔", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "分体主界面", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "应用主题", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "Theme", "remark": "" },
+            { "key": "主题色来源", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "ColorSource", "remark": "" },
+            { "key": "自定义字体", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "MainWindowFont", "remark": "" },
+            { "key": "自定义字重", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "字体大小", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "字体颜色", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" }
+          ]
+        },
+        {
+          "id": "window",
+          "name": "窗口",
+          "permission": "Operable",
+          "items": [
+            { "key": "窗口停靠位置", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "向右偏移", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "向下偏移", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "显示器", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "刷新显示器列表", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+            { "key": "窗口层级", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "窗口层级设置频率", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "指针移入淡化", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "使用原始输入", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "反转指针移入淡化", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "使用原始屏幕尺寸", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "录制模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+            { "key": "阻止截图", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" }
+          ]
+        }
+      ]
+    }
+  ],
+
+  // ===================== 无分组独立小页 =====================
+  "pages": [
+    {
+      "id": "cn.finecontrol.status",
+      "name": "精细化管理",
+      "permission": "Operable",
+      "items": []                      // 本插件状态页（仅含“更新”按钮）；可置灰或隐藏
+    },
+    {
+      "id": "notification",
+      "name": "提醒",
+      "permission": "Operable",
+      "items": [
+        { "key": "启用提醒", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "启用提醒音效", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "启用提醒语音", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "启用提醒强调特效", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "提醒渠道", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "提醒提供方", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "语音引擎", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "语音音量", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "音效音量", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "置顶提醒", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "测试语音", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+        { "key": "测试朗读文本", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" }
+      ]
+    },
+    {
+      "id": "weather",
+      "name": "天气",
+      "permission": "Operable",
+      "items": [
+        { "key": "天气位置", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "城市选择", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "位置坐标", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "启用自动刷新天气位置", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "AutoRefreshWeatherLocation", "remark": "" },
+        { "key": "天气图标包", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "排除的气象预警", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "不使用 TLS 协议获取天气", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": "NoTLSWeatherRequests", "remark": "" }
+      ]
+    },
+    {
+      "id": "automation",
+      "name": "自动化",
+      "permission": "Operable",
+      "items": [
+        { "key": "启用自动化", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "启用恢复", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "添加自动化", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" }
+      ]
+    },
+    {
+      "id": "update",
+      "name": "更新",
+      "permission": "Operable",
+      "items": [
+        { "key": "更新模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "检查更新通道", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "强制检查更新", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+        { "key": "下载并安装", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+        { "key": "仅下载", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+        { "key": "安装更新", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" },
+        { "key": "取消", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "按钮" }
+      ]
+    },
+    {
+      "id": "classisland.plugins",
+      "name": "插件",
+      "permission": "Operable",
+      "items": [
+        { "key": "市场", "matchMode": "HeaderText", "permission": "Operable", "remark": "页签：隐藏后学生看不到插件市场" },
+        { "key": "从缓存重载插件源", "matchMode": "HeaderText", "permission": "Operable", "remark": "更多选项菜单" },
+        { "key": "管理插件源…", "matchMode": "HeaderText", "permission": "Operable", "remark": "更多选项菜单" },
+        { "key": "插件更新设置…", "matchMode": "HeaderText", "permission": "Operable", "remark": "更多选项菜单" },
+        { "key": "从本地安装…", "matchMode": "HeaderText", "permission": "Operable", "remark": "更多选项菜单" },
+        { "key": "打开插件文件夹…", "matchMode": "HeaderText", "permission": "Operable", "remark": "更多选项菜单" },
+        // 同名重复项示例：每个插件详情各有一份“已启用”，需要精确指定时加 index（1 起）。
+        { "key": "已启用", "matchMode": "HeaderText", "index": 1, "permission": "Operable", "settingsProperty": null, "remark": "同名项取第 1 个；不填 index 时精确匹配要求唯一命中" }
+      ]
+    },
+    {
+      "id": "classisland.themes",
+      "name": "主题",
+      "permission": "Operable",
+      "items": []
+    },
+    {
+      "id": "about",
+      "name": "关于",
+      "permission": "Operable",
+      "items": []
+    },
+    {
+      "id": "classisland.appmenu",
+      "name": "应用菜单（三个点）",
+      "permission": "Operable",
+      "remark": "页面级权限控制右上角三个点按钮本身；items 控制菜单项",
+      "items": [
+        { "key": "实验性功能...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "调试窗口规则...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "创建快捷方式...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "数据迁移...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "含子菜单" },
+        { "key": "集控选项...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "含子菜单" },
+        { "key": "退出管理...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "日志...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "含子菜单" },
+        { "key": "导出诊断数据", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "重启到恢复模式", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "打开日志目录...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "打开数据目录...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "打开应用目录...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" }
+      ]
+    },
+    {
+      "id": "classisland.traymenu",
+      "name": "托盘图标菜单",
+      "permission": "Operable",
+      "remark": "页面级：Hidden 隐藏托盘图标，Disabled 禁用全部菜单项；items 控制托盘右键菜单项（原生菜单，仅 HeaderText/Wildcard）",
+      "items": [
+        { "key": "ClassIsland", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "教学...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "帮助文档...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "显示主界面", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "隐藏主界面", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "清除全部提醒", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "更多选项...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "插件条目在子菜单内" },
+        { "key": "编辑档案...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "加载临时课表...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "换课...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "编辑主界面...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "应用设置...", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "重启", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "退出", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "" },
+        { "key": "dev__Debug", "matchMode": "HeaderText", "permission": "Operable", "settingsProperty": null, "remark": "调试，含子菜单" }
+      ]
+    }
+  ]
+}

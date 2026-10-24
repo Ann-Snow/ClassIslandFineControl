@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    ClassIsland 精细化管理插件 工程文件
+    - 目标框架：net8.0-windows（与 ClassIsland 2.0.x / 2.1.0.x（.NET 8 版）一致）
+    - SDK：ClassIsland.PluginSdk 2.1.0.1（与用户端 ClassIsland 2.1.0.1 配套）
+    - ExcludeAssets=runtime;native：插件运行时不携带 SDK 依赖库，全部复用宿主应用
+      自带的程序集，避免版本冲突（官方模板同款写法）。
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>ClassIslandFineControl</RootNamespace>
+    <AssemblyName>ClassIslandFineControl</AssemblyName>
+    <Version>1.5.14.0</Version>
+    <Authors>AnnSnow</Authors>
+    <Product>ClassIsland FineControl</Product>
+    <Description>本插件为接入集控的 ClassIsland 客户端提供精细化的设置项权限管理。</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <ClassIslandPluginSdkVersion>2.1.0.1</ClassIslandPluginSdkVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClassIsland.PluginSdk" Version="$(ClassIslandPluginSdkVersion)">
+      <ExcludeAssets>runtime; native</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- 插件清单 / 说明 / 图标：随编译输出一并复制到输出目录 -->
+  <ItemGroup>
+    <None Update="manifest.yml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="README.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="icon.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

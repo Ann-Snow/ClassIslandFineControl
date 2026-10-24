@@ -1,0 +1,28 @@
+# =============================================================
+# ClassIsland 插件清单文件（YAML 格式）
+# 字段说明（依据官方文档《开始编写插件》）：
+#   id              插件唯一 id（必填）。同时用于确定插件配置目录：
+#                    <ClassIsland根目录>/Config/Plugins/<id>/
+#   name            插件显示名称（可选）
+#   description     插件描述（可选）
+#   entranceAssembly 插件入口程序集（必填）。加载插件时从这个程序集里查找
+#                    [PluginEntrance] 入口类，必须与 csproj 的 AssemblyName 一致。
+#   url             插件主页 Url（可选）
+#   author          插件作者（可选）
+#   version         插件版本（可选），如 1.0.0.0
+#   apiVersion      此插件面向的 ClassIsland 版本（必填）。插件只能运行在
+#                    高于此版本的 ClassIsland 上。2.0.0.0 兼容 ClassIsland 2.x。
+#   icon            插件图标文件名（可选，默认 icon.png）
+#   readme          插件自述文件名（可选，默认 README.md）
+# =============================================================
+
+id: cn.finecontrol.permission
+name: ClassIsland 精细化管理插件
+description: 本插件为接入集控的 ClassIsland 客户端提供精细化的设置项权限管理。可按设置页与具体设置项配置可操作、禁用或隐藏，支持值级锁定与自保护，避免集控管控策略失效。
+entranceAssembly: "ClassIslandFineControl.dll"
+url: https://classisland.tech
+author: AnnSnow
+version: 1.5.14.0
+apiVersion: 2.0.0.0
+icon: icon.png
+readme: README.md
