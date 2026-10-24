@@ -20,7 +20,7 @@ id: cn.finecontrol.permission
 name: ClassIsland 精细化管理插件
 description: 本插件为接入集控的 ClassIsland 客户端提供精细化的设置项权限管理。可按设置页与具体设置项配置可操作、禁用或隐藏，支持值级锁定与自保护，避免集控管控策略失效。
 entranceAssembly: "ClassIslandFineControl.dll"
-url: https://classisland.tech
+url: https://github.com/Ann-Snow/ClassIslandFineControl
 author: AnnSnow
 version: 1.5.14.0
 apiVersion: 2.0.0.0
